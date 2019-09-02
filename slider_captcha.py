@@ -35,11 +35,12 @@ class SliderCaptcha():
             login_url = 'http://dun.163.com/trial/jigsaw'
             self.driver.maximize_window()
             self.driver.get(url=login_url)
+            # 点击按钮，触发滑块
             self.driver.find_element_by_xpath(
                 '//div[@class="yidun_slider"]'
             ).click()
-            # time.sleep(2)
-            # while True:
+
+            # 获取背景图并保存
             background = self.wait.until(
                 lambda x: x.find_element_by_xpath('//img[@class="yidun_bg-img"]')
             ).get_attribute('src')
@@ -47,6 +48,7 @@ class SliderCaptcha():
                 resp = requests.get(background)
                 f.write(resp.content)
 
+            # 获取滑块图并保存
             slider = self.wait.until(
                 lambda x: x.find_element_by_xpath('//img[@class="yidun_jigsaw"]')
             ).get_attribute('src')
@@ -54,15 +56,19 @@ class SliderCaptcha():
                 resp = requests.get(slider)
                 f.write(resp.content)
 
-            distance = self.findfic()
+            distance = self.findfic(target='background.png', template='slider.png')
             print(distance)
+            # 初始滑块距离边缘 4 px
             trajectory = self.get_tracks(distance + 4)
             print(trajectory)
+
+            # 等待按钮可以点击
             slider_element = self.wait.until(
                 EC.element_to_be_clickable(
                     (By.CLASS_NAME, 'yidun_jigsaw'))
             )
 
+            # 添加行动链
             ActionChains(self.driver).click_and_hold(slider_element).perform()
             for track in trajectory['plus']:
                 ActionChains(self.driver).move_by_offset(
